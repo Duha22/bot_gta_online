@@ -4,7 +4,7 @@ sock = socket.socket(
     socket.AF_INET,
     socket.SOCK_STREAM
 )
-sock.connect(('127.0.0.1', 1235))
+sock.connect(('127.0.0.1', 10000))
 while True:
     text = input(">>> ")
     sock.send(text)

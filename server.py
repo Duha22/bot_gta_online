@@ -5,7 +5,7 @@ sock = socket.socket(
     socket.SOCK_STREAM
 )
 
-sock.bind(('127.0.0.1', 1235))
+sock.bind(('127.0.0.1', 10000))
 sock.listen(1)
 conn, addr = sock.accept()
 
