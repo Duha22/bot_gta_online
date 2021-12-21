@@ -1,6 +1,4 @@
-import os, pyautogui, easyocr, PyQt5.QtWidgets, torch, sys, smtplib, traceback
-
-import ahk
+import os, pyautogui, easyocr, PyQt5.QtWidgets, torch, sys, smtplib, traceback, datetime
 from keyboard import add_hotkey, wait
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -53,7 +51,6 @@ class Tread(QThread):
     def run(self):
         add_hotkey("Ctrl + S", self.test)
 
-
     def test(self):
         if self.thread.isRunning():
             self.thread.terminate()
@@ -73,6 +70,13 @@ class Main(QThread):
         self.ahk = AHK()
 
     def run(self):
+        # x = round(self.X / 8)
+        # y = round(self.Y / 5)
+        QThread.msleep(10000)
+        # self.ahk.mouse_move(x, y)
+        # if self.ahk.pixel_get_color(x, y) == "0x000000":
+        #     print(1)
+        # exit(0)
         if self.function == "inside_track":
             self.inside_track()
         elif self.function == "anti_afk":
@@ -151,6 +155,8 @@ class Main(QThread):
                 y = round(self.Y/5)
                 if self.ahk.pixel_get_color(x, y) == "0x000000":
                     self.ahk.key_press('enter')
+                    if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1):
+                        self.ahk.click(self.X/2, self.Y/2)
                     continue
                 QThread.msleep(2000)
                 if pyautogui.getActiveWindowTitle() == "Grand Theft Auto V":
