@@ -129,12 +129,12 @@ class Main(QThread):
                 self.ahk.click(bbr_x, bbr_y)
                 click_check_1 = self.ahk.pixel_get_color(1160, 280)
                 while self.ahk.pixel_get_color(1160, 280) == click_check_1:
-                    if self.ahk.pixel_get_color(round(self.X/8), round(self.Y/5)):
-                        raise Exception
                     self.ahk.click()
+                    if self.ahk.pixel_get_color(round(self.X/8), round(self.Y/6)) == "0x000000":
+                        raise Exception
                     QThread.msleep(300)
                 while pyautogui.locateCenterOnScreen('put_it_again.png') == None:
-                    if self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 5)) == "0x000000":
+                    if self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 6)) == "0x000000":
                         raise Exception
                     QThread.msleep(1000)
                 else:
@@ -146,21 +146,30 @@ class Main(QThread):
                         self.ahk.click()
                         QThread.msleep(300)
             except Exception as _ex:
-                QThread.msleep(6000)
-                x = round(self.X/8)
-                y = round(self.Y/5)
+                QThread.msleep(1000)
                 if pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.1):
-                    self.ahk.key_press('enter')
-                    QThread.msleep(500)
-                    while pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1):
-                        self.ahk.click(self.X/2, self.Y/2)
-                        self.email_send("ConnectError")
+                    while pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.1) != None:
+                        self.ahk.key_press('enter')
+                    QThread.msleep(200)
+                    self.email_send("ConnectError")
+                    if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1) != None:
+                        if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1) != None:
+                            QThread.msleep(1000)
+                            self.ahk.click(self.X/2, self.Y/2)
                         continue
+                    elif pyautogui.locateCenterOnScreen("put_it_again.png") != None:
+                        while pyautogui.locateCenterOnScreen("put_it_again.png") != None:
+                            x, y = pyautogui.locateCenterOnScreen("put_it_again.png")
+                            self.ahk.click(x, y)
+                            QThread.msleep(100)
+                        continue
+
                 if pyautogui.getActiveWindowTitle() == "Grand Theft Auto V":
                     self.email_send(error_valuem='OtherERROR')
                     break
                 else:
                     break
+
     def email_send(self, error_valuem):
         try:
             error_valuem = error_valuem
@@ -190,7 +199,7 @@ class Main(QThread):
             text = str(traceback.format_exc())
             with open(file_name, 'w', encoding='utf-8') as file:
                 file.write(text)
-            exit(0)
+
 
 
 if __name__ == '__main__':
