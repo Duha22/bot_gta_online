@@ -1,5 +1,5 @@
-import os, pyautogui, easyocr, PyQt5.QtWidgets, torch, sys, smtplib, traceback, datetime
-from keyboard import add_hotkey, wait
+import os, pyautogui, easyocr, PyQt5.QtWidgets, sys, smtplib, traceback, datetime
+from keyboard import add_hotkey
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
@@ -55,7 +55,6 @@ class Tread(QThread):
         if self.thread.isRunning():
             self.thread.terminate()
             self.stop_main_tread.emit(0)
-
 class Main(QThread):
     X, Y = pyautogui.size()
     ex_email = pyqtSignal(str)
@@ -66,17 +65,9 @@ class Main(QThread):
         self.function = function
         self.key = key
         self.stop = "__init__"
-        torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.ahk = AHK()
 
     def run(self):
-        # x = round(self.X / 8)
-        # y = round(self.Y / 5)
-        QThread.msleep(10000)
-        # self.ahk.mouse_move(x, y)
-        # if self.ahk.pixel_get_color(x, y) == "0x000000":
-        #     print(1)
-        # exit(0)
         if self.function == "inside_track":
             self.inside_track()
         elif self.function == "anti_afk":
@@ -136,11 +127,15 @@ class Main(QThread):
                     QThread.msleep(300)
                 bbr_x, bbr_y =pyautogui.locateCenterOnScreen('place_bet_befor_run.png')
                 self.ahk.click(bbr_x, bbr_y)
-                click_check = self.ahk.pixel_get_color(1160, 280)
-                while self.ahk.pixel_get_color(1160, 280) == click_check:
+                click_check_1 = self.ahk.pixel_get_color(1160, 280)
+                while self.ahk.pixel_get_color(1160, 280) == click_check_1:
+                    if self.ahk.pixel_get_color(round(self.X/8), round(self.Y/5)):
+                        raise Exception
                     self.ahk.click()
                     QThread.msleep(300)
                 while pyautogui.locateCenterOnScreen('put_it_again.png') == None:
+                    if self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 5)) == "0x000000":
+                        raise Exception
                     QThread.msleep(1000)
                 else:
                     click_check = self.ahk.pixel_get_color(10, 30)
@@ -151,34 +146,52 @@ class Main(QThread):
                         self.ahk.click()
                         QThread.msleep(300)
             except Exception as _ex:
+                QThread.msleep(6000)
                 x = round(self.X/8)
                 y = round(self.Y/5)
-                if self.ahk.pixel_get_color(x, y) == "0x000000":
+                if pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.1):
                     self.ahk.key_press('enter')
-                    if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1):
+                    QThread.msleep(500)
+                    while pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1):
                         self.ahk.click(self.X/2, self.Y/2)
-                    continue
-                QThread.msleep(2000)
+                        self.email_send("ConnectError")
+                        continue
                 if pyautogui.getActiveWindowTitle() == "Grand Theft Auto V":
-                    sender = "bitprog.official@gmail.com"
-                    password = "ixr-hMm-Xtg-mb8"
-                    message_text = str(traceback.format_exc())
-                    server = smtplib.SMTP("smtp.gmail.com", 587)
-                    server.starttls()
-                    pyautogui.screenshot(imageFilename="error.png")
-                    try:
-                        server.login(sender, password)
-                        part = MIMEApplication(open("error.png", 'rb').read())
-                        msg = MIMEMultipart()
-                        part.add_header('Content-Disposition', 'attachment', filename='error.png')
-                        msg.attach(part)
-                        msg.attach(MIMEText(message_text))
-                        server.sendmail(sender, "danilovandrey22@gmail.com", msg.as_string())
-                    except Exception as _ex_email:
-                        exit(0)
+                    self.email_send(error_valuem='OtherERROR')
                     break
                 else:
                     break
+    def email_send(self, error_valuem):
+        try:
+            error_valuem = error_valuem
+            sender = "bitprog.official@gmail.com"
+            password = "ixr-hMm-Xtg-mb8"
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            pyautogui.screenshot(imageFilename="error.png")
+            server.login(sender, password)
+            msg = MIMEMultipart()
+            part = MIMEApplication(open("error.png", 'rb').read())
+            if error_valuem == "ConnectError":
+                self.message_text = "The RockStarGames error has been overcome"
+                part.add_header('Content-Disposition', 'attachment', filename='cheak_screnshot.png')
+                msg.attach(part)
+            elif error_valuem == 'OtherERROR':
+                self.message_text =  str(traceback.format_exc())
+                part.add_header('Content-Disposition', 'attachment', filename='error.png')
+                msg.attach(part)
+            msg.attach(MIMEText(self.message_text))
+            server.sendmail(sender, "danilovandrey22@gmail.com", msg.as_string())
+        except Exception as _ex_email:
+            os.chdir('..')
+            os.chdir('crashreport')
+            now = datetime.datetime.now()
+            file_name = f"{datetime.date.today()}_{now.strftime('%H:%M:%S')}".replace(':', '-')
+            text = str(traceback.format_exc())
+            with open(file_name, 'w', encoding='utf-8') as file:
+                file.write(text)
+            exit(0)
+
 
 if __name__ == '__main__':
     app = PyQt5.QtWidgets.QApplication([])
