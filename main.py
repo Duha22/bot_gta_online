@@ -81,6 +81,35 @@ class Main(QThread):
             continue
         self.ahk.key_press(self.key, release=False)
 
+    def black_win(self):
+        QThread.msleep(2000)
+        if pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.4) != None:
+            while pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.4) != None:
+                self.ahk.key_press('enter')
+            QThread.msleep(200)
+            self.email_send("ConnectError")
+            if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.4) != None:
+                while pyautogui.locateCenterOnScreen("error_check.png", confidence=0.4) != None:
+                    self.ahk.click(self.X / 2, self.Y / 2)
+                    QThread.msleep(1000)
+                return True
+            elif pyautogui.locateCenterOnScreen("put_it_again.png") != None:
+                x, y = pyautogui.locateCenterOnScreen("put_it_again.png")
+                self.ahk.click(x, y)
+                color_check1 = self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 6))
+                color_chech2 = self.ahk.pixel_get_color(self.X - round(self.X / 8), self.Y - round(self.Y / 6))
+                while self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 6)) == color_check1 and \
+                        self.ahk.pixel_get_color(self.X - round(self.X / 8),
+                                                 self.Y - round(self.Y / 6)) == color_chech2:
+                    self.ahk.click(x, y)
+                    QThread.msleep(1000)
+                return True
+        elif pyautogui.getActiveWindowTitle() == "Grand Theft Auto V" and pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.4) == None:
+            self.email_send(error_valuem='OtherERROR')
+            return False
+        else:
+            return False
+
     def inside_track(self):
         path = os.getcwd()
         if path.split("\\")[-1] != "png":
@@ -124,19 +153,23 @@ class Main(QThread):
                 QThread.msleep(500)
                 if flag_11 != 1:
                     self.ahk.key_press('tab')
-                    QThread.msleep(300)
+                    QThread.msleep(200)
                 bbr_x, bbr_y =pyautogui.locateCenterOnScreen('place_bet_befor_run.png')
-                self.ahk.click(bbr_x, bbr_y)
                 click_check_1 = self.ahk.pixel_get_color(1160, 280)
+                self.ahk.click(bbr_x, bbr_y)
                 while self.ahk.pixel_get_color(1160, 280) == click_check_1:
                     self.ahk.click()
-                    if self.ahk.pixel_get_color(round(self.X/8), round(self.Y/6)) == "0x000000":
-                        raise Exception
                     QThread.msleep(300)
-                while pyautogui.locateCenterOnScreen('put_it_again.png') == None:
-                    if self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 6)) == "0x000000":
-                        raise Exception
-                    QThread.msleep(1000)
+                if pyautogui.locateCenterOnScreen('put_it_again.png') == None:
+                    black_1 = self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 6))
+                    black_2 = self.ahk.pixel_get_color(self.X - round(self.X / 8), self.Y - round(self.Y / 6))
+                    if black_1 == "0x000000" and black_2 == "0x000000":
+                        con = self.black_win()
+                        if con == True:
+                            continue
+                    while pyautogui.locateCenterOnScreen('put_it_again.png') == None:
+                        QThread.msleep(1000)
+
                 else:
                     click_check = self.ahk.pixel_get_color(10, 30)
                     pa_x, pa_y = pyautogui.locateCenterOnScreen('put_it_again.png')
@@ -145,30 +178,37 @@ class Main(QThread):
                     while self.ahk.pixel_get_color(10, 30) == click_check:
                         self.ahk.click()
                         QThread.msleep(300)
+
             except Exception as _ex:
                 QThread.msleep(1000)
-                if pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.1):
-                    while pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.1) != None:
-                        self.ahk.key_press('enter')
-                    QThread.msleep(200)
-                    self.email_send("ConnectError")
-                    if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1) != None:
-                        if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.1) != None:
-                            QThread.msleep(1000)
-                            self.ahk.click(self.X/2, self.Y/2)
-                        continue
-                    elif pyautogui.locateCenterOnScreen("put_it_again.png") != None:
-                        while pyautogui.locateCenterOnScreen("put_it_again.png") != None:
-                            x, y = pyautogui.locateCenterOnScreen("put_it_again.png")
-                            self.ahk.click(x, y)
-                            QThread.msleep(100)
-                        continue
-
-                if pyautogui.getActiveWindowTitle() == "Grand Theft Auto V":
-                    self.email_send(error_valuem='OtherERROR')
-                    break
-                else:
-                    break
+                con = self.black_win()
+                if con == True: continue
+                elif con == False: break
+                # if pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.4) != None:
+                #     while pyautogui.locateCenterOnScreen("internet_error.png", confidence=0.4) != None:
+                #         self.ahk.key_press('enter')
+                #     QThread.msleep(200)
+                #     self.email_send("ConnectError")
+                #     if pyautogui.locateCenterOnScreen("error_check.png", confidence=0.4) != None:
+                #         while pyautogui.locateCenterOnScreen("error_check.png", confidence=0.4) != None:
+                #             self.ahk.click(self.X/2, self.Y/2)
+                #             QThread.msleep(1000)
+                #         continue
+                #     elif pyautogui.locateCenterOnScreen("put_it_again.png") != None:
+                #         x, y = pyautogui.locateCenterOnScreen("put_it_again.png")
+                #         self.ahk.click(x, y)
+                #         color_check1 = self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 6))
+                #         color_chech2 = self.ahk.pixel_get_color(self.X - round(self.X / 8), self.Y - round(self.Y / 6))
+                #         while self.ahk.pixel_get_color(round(self.X / 8), round(self.Y / 6)) == color_check1 and \
+                #                 self.ahk.pixel_get_color(self.X - round(self.X / 8), self.Y - round(self.Y / 6)) == color_chech2:
+                #             self.ahk.click(x, y)
+                #             QThread.msleep(1000)
+                #         continue
+                # if pyautogui.getActiveWindowTitle() == "Grand Theft Auto V":
+                #     self.email_send(error_valuem='OtherERROR')
+                #     break
+                # else:
+                #     break
 
     def email_send(self, error_valuem):
         try:
@@ -181,16 +221,17 @@ class Main(QThread):
             server.login(sender, password)
             msg = MIMEMultipart()
             part = MIMEApplication(open("error.png", 'rb').read())
-            if error_valuem == "ConnectError":
-                self.message_text = "The RockStarGames error has been overcome"
-                part.add_header('Content-Disposition', 'attachment', filename='cheak_screnshot.png')
-                msg.attach(part)
-            elif error_valuem == 'OtherERROR':
-                self.message_text =  str(traceback.format_exc())
-                part.add_header('Content-Disposition', 'attachment', filename='error.png')
-                msg.attach(part)
+            # if error_valuem == "ConnectError":
+            #     self.message_text = "The RockStarGames error has been overcome"
+            #     part.add_header('Content-Disposition', 'attachment', filename='cheak_screnshot.png')
+            #     msg.attach(part)
+            # elif error_valuem == 'OtherERROR':
+            self.message_text =  str(traceback.format_exc())
+            part.add_header('Content-Disposition', 'attachment', filename='error.png')
+            msg.attach(part)
             msg.attach(MIMEText(self.message_text))
             server.sendmail(sender, "danilovandrey22@gmail.com", msg.as_string())
+            server.quit()
         except Exception as _ex_email:
             os.chdir('..')
             os.chdir('crashreport')
